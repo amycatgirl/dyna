@@ -56,6 +56,8 @@ info: this might change in the future
 
 `shouldRestart`: restart client after update (BOOLEAN)
 
+`forge`: the git forge where the plugin is hosted (STRING) 
+
 ### dyna api
 
 `version`: plugin's current version (INT)
@@ -99,7 +101,7 @@ info: this might change in the future
   - [ ] manual update toggle per plugin (by user)
   - [ ] manual update button
 - [ ] updater v2
-  - [ ] allow other git providers such as gitea and forgejo
+  - [x] allow other git providers such as gitea and forgejo
   - [ ] dependencies
     - [ ] download
   - [ ] event emitters for other plugins to listen to

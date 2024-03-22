@@ -92,13 +92,18 @@
 	}
 
 	/**
-	 * Internal API - Fetch plugin information from Github
+	 * Internal API - Fetch plugin information from a git forge
+     * @param {string?} forge - Plugin's git forge
 	 * @param {string} repo - Plugin's repository
 	 * @returns {DnyaPluginInformation}
 	 */
-	async function fetchPluginInformation(repo) {
+	async function fetchPluginInformation(forge=undefined, repo) {
 		try {
-			const res = fetch(`https://raw.githubusercontent.com/${repo}/main/dyna.json`).then(async (res) => await res.json())
+            if (forge) {
+			    const res = fetch(`https://${forge}/${repo}/raw/branch/main/dyna.json`).then(async (res) => await res.json())
+            } else {
+                const res = fetch(`https://raw.githubusercontent.com/${repo}/main/dyna.json`).then(async (res) => await res.json()) 
+            }
 
 			return res
 		} catch (err) {
