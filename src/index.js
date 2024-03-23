@@ -17,6 +17,131 @@
 	 * @property {boolean} [shouldRestart=false] - Whether the manager should reload the client when the plugin is updated.
 	 */
 
+	class UpdateIndicator extends HTMLElement {
+		constructor() {
+			super();
+			this._template = `
+				<div class="dyna popup updateInfo">
+					<progress id="updateProgress" max=1 value=.5></progress>
+					<div class="information">
+						<h2 id="progressText">Please wait...</h2>
+						<header>
+							<span>dyna</span>
+						</header>
+					</div>
+				</div>
+			`
+
+			this._styles = `
+				.dyna.popup {
+					--offset: 10px;
+
+					font-family: sans-serif;
+
+					position: absolute;
+					top: var(--offset);
+					right: var(--offset);
+					display: flex;
+					flex-flow: column nowrap;
+					border-radius: 10px;
+					overflow: clip;
+
+					background: rgba(var(--primary-background-rgb), .5);
+					backdrop-filter: blur(5px);
+					color: var(--foreground);
+				}
+
+				.dyna.popup.updateInfo .information {
+					padding: 10px;
+				}
+
+				.dyna.popup.updateInfo progress {
+					-webkit-appearance: none;
+					appearance: none;
+
+					width: 100%;
+				}
+
+
+				.dyna.popup.updateInfo progress::-webkit-progress-value {
+					background: var(--accent);
+					transition: all 1s ease-in-out;
+				}
+
+				.dyna.popup.updateInfo progress::-webkit-progress-bar {
+					background: transparent;
+				}
+
+				.dyna.popup.updateInfo h2 {
+					margin: 0 0 10px 0;
+				}
+
+				.dyna.popup.updateInfo header>span {
+					color: var(--tertiary-foreground);
+					font-style: italic;
+				}
+
+				.slidein {
+					animation-name: slide;
+					animation-fill-mode: forwards;
+					animation-duration: 1s;
+					animation-timing-function: ease-in-out;
+				}
+
+				.slideout {
+					animation-name: slide;
+					animation-direction: reverse;
+					animation-duration: 1s;
+					animation-timing-function: ease-in-out;
+				}
+
+				@keyframes slide {
+					from {
+						transform: translateX(500px);
+					}
+
+					to {
+						transform: translateX(0px);
+					}
+				}
+			`
+		}
+
+		connectedCallback() {
+			const shadow = this.attachShadow({ mode: "open" })
+			const style = new CSSStyleSheet()
+			style.replaceSync(this._styles);
+			shadow.innerHTML = this._template
+			shadow.adoptedStyleSheets = [style]
+		}
+
+		updateProgress(int) {
+			const shadowDOM = this.shadowRoot
+			shadowDOM.getElementById("updateProgress").value = int
+		}
+
+		updateProgressInformation(amount) {
+			const shadowDom = this.shadowRoot
+			shadowDom.getElementById("progressText").innerText = `Updating ${amount} plugins`
+		}
+
+		slide(dir) {
+			const shadowDom = this.shadowRoot
+			shadowDom.querySelector('.dyna.popup.updateInfo').classList.add(`slide${dir}`)
+
+			setTimeout(() => shadowDom.querySelector('.dyna.popup.updateInfo').classList.remove(`slide${dir}`), 1000);
+		}
+
+		finished() {
+			const shadowDom = this.shadowRoot
+			shadowDom.getElementById("progressText").innerText = `All plugins have been updated!`
+		}
+	}
+
+	if (!customElements.get('dyna-indicator')){
+		customElements.define('dyna-indicator', UpdateIndicator)
+	}
+
 	/** Dyna */
 	window.dyna = {};
 
@@ -120,7 +245,6 @@
 		}
 	}
 
-
 	/**
 	 * Internal API - Update all installed plugins.
 	 */
@@ -129,6 +253,11 @@
 		if (window.dyna.store.dynaplugins.length == 0) {
 			gatherPluginsFromState()
 		}
+
+		const indicator = window.document.createElement("dyna-indicator")
+		window.document.body.appendChild(indicator)
+		indicator.updateProgressInformation(window.dyna.store.dynaplugins.length)
+		indicator.slide("in")
 
 		let shouldRestart = false;
 		for await (const [index, plugin] of window.dyna.store.dynaplugins.entries()) {
@@ -154,6 +283,7 @@
 			}
 
 			updateProgress = ((index + 1) / window.dyna.store.dynaplugins.length) * 100
+			indicator.updateProgress(updateProgress)
 			console.log(`Progress: ${updateProgress}%`)
 		}
 
@@ -162,6 +292,15 @@
 			window.alert("RELOADING")
 			window.location.reload();
 		}
+
+		// Remove indicator as all plugins have updated
+		indicator.finished()
+		setTimeout(() => indicator.slide("out"), 4000);
+		setTimeout(() => indicator.remove(), 5000);
+	}
+
+	function InternalArtificialDelay(callback) {
+		setTimeout(callback, 5000)
 	}
 
 	/**

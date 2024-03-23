@@ -1,7 +1,7 @@
 {
 	"namespace": "amycatgirl",
 	"id": "dyna",
-	"version": 6,
+	"version": 7,
 	"dyna": {
 		"repo": "amycatgirl/dyna-testing",
 		"shouldRestart": true,
