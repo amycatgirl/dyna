@@ -90,7 +90,7 @@ info: this might change in the future
 - [ ] updater v1
   - [x] allow other plugins to see dyna-compatible plugins
   - [ ] merge dyna.json with manifest.json
-  - [ ] update indicator
+  - [x] update indicator
   - [x] manual updates for other plugins
   - [ ] update check without downloading plugin
 - [ ] manager v1
